@@ -1,16 +1,4 @@
-use crate::{cell::Cell, particle::Particle, vec2::Vec2, dna::CreatureDna};
-
-#[derive(Copy, Clone)]
-pub struct CellOptions {
-    pub size: usize,
-    pub cell_size: f64,
-    pub pulse_threshold: f64,
-    pub charge_threshold: f64,
-    pub discharge_threshold: f64,
-    pub charge_accel: f64,
-    pub node_damping: f64,
-    pub node_mass: f64,
-}
+use crate::{cell::Cell, particle::Particle, vec2::Vec2, dna::CreatureDna, config::CreatureConfig};
 
 pub struct Creature {
     pub particles: Vec<Particle>,
@@ -58,7 +46,7 @@ impl Creature {
         row * side_length + col
     }
 
-    pub fn new(options: CellOptions, dna: CreatureDna) -> Option<Creature> {
+    pub fn new(options: CreatureConfig, dna: CreatureDna) -> Option<Creature> {
         let mut particles = Vec::with_capacity(options.size * options.size);
         for row in 0..options.size + 1 {
             for col in 0..options.size + 1 {

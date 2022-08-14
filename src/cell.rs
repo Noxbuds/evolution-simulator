@@ -1,9 +1,9 @@
-use crate::{spring::Spring, particle::Particle, dna::CellDna, charge::{ChargeModel, pulse::Pulse, action_potential::ActionPotential}, creature::CellOptions};
+use crate::{spring::Spring, particle::Particle, dna::CellDna, charge::{ChargeModel, pulse::Pulse, action_potential::ActionPotential}, config::CreatureConfig};
 
 pub struct Cell {
     pub dna: CellDna,
     pub springs: [Spring; 6],
-    pub charge_model: Box<dyn ChargeModel>,
+    pub charge_model: Box<dyn ChargeModel + Send>,
     pub pos: (usize, usize),
 }
 
@@ -18,7 +18,7 @@ impl Cell {
         }
     }
 
-    pub fn new(cell_ids: [usize; 4], options: CellOptions, dna: CellDna, pos: (usize, usize)) -> Cell {
+    pub fn new(cell_ids: [usize; 4], options: CreatureConfig, dna: CellDna, pos: (usize, usize)) -> Cell {
         let diagonal = (options.cell_size * options.cell_size * 2.0).sqrt();
         let springs = [
             Spring {
@@ -65,7 +65,7 @@ impl Cell {
             },
         ];
 
-        let charge_model: Box<dyn ChargeModel> = if dna.charge_rate > options.pulse_threshold {
+        let charge_model: Box<dyn ChargeModel + Send> = if dna.charge_rate > options.pulse_threshold {
             Box::new(Pulse::new(
                 dna.charge_rate * 0.5,
                 options.charge_threshold,

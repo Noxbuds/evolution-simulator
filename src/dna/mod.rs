@@ -9,3 +9,19 @@ pub struct CellDna {
 
 pub type CreatureDna = Vec<CellDna>;
 
+pub fn generate_dna(length: usize) -> CreatureDna {
+    let mut dna: CreatureDna = Vec::new();
+
+    for _ in 0..length {
+        dna.push(CellDna {
+            conductivity: rand::random::<f64>() * 1.5,
+            reactivity: rand::random::<f64>() * 0.1,
+            toughness: 1000.0 * (rand::random::<f64>() + 1.0),
+            active: rand::random(),
+            charge_rate: rand::random::<f64>() * 2.0,
+        })
+    }
+
+    dna
+}
+

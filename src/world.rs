@@ -1,23 +1,13 @@
-use opengl_graphics::GlGraphics;
-use piston::RenderArgs;
-
-use crate::{creature::Creature, vec2::Vec2, renderers::RenderPass};
+use crate::{creature::Creature, vec2::Vec2, renderers::RenderPass, config::WorldConfig};
 
 pub struct World {
     pub creatures: Vec<Creature>,
     pub ground_y: f64,
     pub ground_friction: f64,
     pub gravity: f64,
-    pub render_passes: Vec<RenderPass>,
 }
 
 impl World {
-    pub fn render(&self, args: &RenderArgs, gl: &mut GlGraphics) {
-        for pass in self.render_passes.iter() {
-            pass(self, args, gl);
-        }
-    }
-
     pub fn update(&mut self, dt: f64) {
         for creature in self.creatures.iter_mut() {
             for particle in creature.particles.iter_mut() {
@@ -35,6 +25,19 @@ impl World {
             }
 
             creature.update(dt);
+        }
+    }
+
+    pub fn add_creature(&mut self, creature: Creature) {
+        self.creatures.push(creature);
+    }
+
+    pub fn from_config(config: WorldConfig) -> World {
+        World {
+            creatures: vec![],
+            ground_y: config.ground_y,
+            ground_friction: config.ground_friction,
+            gravity: config.gravity,
         }
     }
 }
