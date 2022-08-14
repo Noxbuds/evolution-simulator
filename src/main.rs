@@ -1,4 +1,6 @@
-use creature::Creature;
+use charge::action_potential::ActionPotential;
+use creature::{Creature, CellOptions};
+use dna::{CellDna, CreatureDna};
 use glutin_window::GlutinWindow;
 use opengl_graphics::{GlGraphics, OpenGL};
 use piston::{RenderArgs, UpdateArgs, EventSettings, WindowSettings, Events, RenderEvent, UpdateEvent};
@@ -12,6 +14,8 @@ mod cell;
 mod creature;
 mod world;
 mod renderers;
+mod dna;
+mod charge;
 
 pub struct App {
     gl: GlGraphics,
@@ -32,6 +36,22 @@ impl App {
     }
 }
 
+fn generate_dna(length: usize) -> CreatureDna {
+    let mut dna: CreatureDna = Vec::new();
+
+    for _ in 0..length {
+        dna.push(CellDna {
+            conductivity: rand::random(),
+            reactivity: rand::random(),
+            toughness: 1000.0 * (rand::random::<f64>() + 1.0),
+            active: rand::random(),
+            charge_rate: rand::random::<f64>() * 2.0,
+        })
+    }
+
+    dna
+}
+
 fn main() {
     let opengl = OpenGL::V2_1;
 
@@ -41,7 +61,20 @@ fn main() {
         .build()
         .unwrap();
 
-    let creature = Creature::new(4, 40.0, 2e-3, 2.0, 1500.0);
+    let creature_size = 8;
+    let dna = generate_dna(creature_size * creature_size);
+
+    let cell_options = CellOptions {
+        size: creature_size,
+        node_damping: 2e-3,
+        cell_size: 40.0,
+        pulse_threshold: 1.9,
+        charge_threshold: 1.0,
+        discharge_threshold: 1.1,
+        charge_accel: 200.0,
+        node_mass: 2.0,
+    };
+    let creature = Creature::new(cell_options, dna).unwrap();
 
     let world = World {
         creatures: vec![creature],
