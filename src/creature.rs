@@ -3,6 +3,7 @@ use crate::{cell::Cell, particle::Particle, vec2::Vec2};
 pub struct Creature {
     pub particles: Vec<Particle>,
     pub cells: Vec<Cell>,
+    pub size: usize,
 }
 
 impl Creature {
@@ -16,7 +17,7 @@ impl Creature {
         }
     }
 
-    fn get_cell_id(row: usize, col: usize, side_length: usize) -> usize {
+    pub fn get_cell_id(row: usize, col: usize, side_length: usize) -> usize {
         row * side_length + col
     }
 
@@ -53,6 +54,7 @@ impl Creature {
         Creature {
             particles,
             cells,
+            size,
         }
     }
 }

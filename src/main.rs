@@ -2,7 +2,7 @@ use creature::Creature;
 use glutin_window::GlutinWindow;
 use opengl_graphics::{GlGraphics, OpenGL};
 use piston::{RenderArgs, UpdateArgs, EventSettings, WindowSettings, Events, RenderEvent, UpdateEvent};
-use renderers::wireframe::render_wireframe;
+use renderers::solid::render_solid;
 use world::World;
 
 mod particle;
@@ -46,8 +46,9 @@ fn main() {
     let world = World {
         creatures: vec![creature],
         ground_y: 500.0,
+        gravity: 100.0,
         render_passes: vec![Box::new(|world, args, gl| {
-            render_wireframe(world, args, gl)
+            render_solid(world, args, gl)
         })],
     };
 

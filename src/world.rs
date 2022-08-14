@@ -6,6 +6,7 @@ use crate::{creature::Creature, vec2::Vec2, renderers::RenderPass};
 pub struct World {
     pub creatures: Vec<Creature>,
     pub ground_y: f64,
+    pub gravity: f64,
     pub render_passes: Vec<RenderPass>,
 }
 
@@ -19,7 +20,7 @@ impl World {
     pub fn update(&mut self, dt: f64) {
         for creature in self.creatures.iter_mut() {
             for particle in creature.particles.iter_mut() {
-                particle.accelerate(Vec2 { x: 0.0, y: 60.0 });
+                particle.accelerate(Vec2 { x: 0.0, y: self.gravity });
 
                 if particle.position.y > self.ground_y {
                     particle.position.y = self.ground_y;
