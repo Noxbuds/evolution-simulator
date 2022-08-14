@@ -20,34 +20,33 @@ impl Creature {
         row * side_length + col
     }
 
-    pub fn new(size: usize, cell_size: f64) -> Creature {
+    pub fn new(size: usize, cell_size: f64, node_damping: f64, node_mass: f64, muscle_strength: f64) -> Creature {
         let mut particles = Vec::with_capacity(size * size);
-        for row in 0..size {
-            for col in 0..size {
+        for row in 0..size + 1 {
+            for col in 0..size + 1 {
                 let (x, y) = (col as f64 * cell_size, row as f64 * cell_size);
 
                 particles.push(Particle {
                     position: Vec2 { x, y },
                     old_position: Vec2 { x, y},
                     acceleration: Vec2 { x: 0.0, y: 0.0 },
-                    mass: 5.0,
-                    damping: 1e-3,
+                    mass: node_mass,
+                    damping: node_damping,
                 })
             }
         }
 
-        let side_length = size - 1;
-        let mut cells = Vec::with_capacity(side_length * side_length);
-        for row in 0..side_length {
-            for col in 0..side_length {
+        let mut cells = Vec::with_capacity(size * size);
+        for row in 0..size {
+            for col in 0..size {
                 let ids = [
-                    Creature::get_cell_id(row, col, size),
-                    Creature::get_cell_id(row, col + 1, size),
-                    Creature::get_cell_id(row + 1, col + 1, size),
-                    Creature::get_cell_id(row + 1, col, size),
+                    Creature::get_cell_id(row, col, size + 1),
+                    Creature::get_cell_id(row, col + 1, size + 1),
+                    Creature::get_cell_id(row + 1, col + 1, size + 1),
+                    Creature::get_cell_id(row + 1, col, size + 1),
                 ];
 
-                cells.push(Cell::new(ids, cell_size, 1500.0));
+                cells.push(Cell::new(ids, cell_size, muscle_strength));
             }
         }
 

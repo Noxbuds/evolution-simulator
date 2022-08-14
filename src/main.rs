@@ -2,74 +2,32 @@ use creature::Creature;
 use glutin_window::GlutinWindow;
 use opengl_graphics::{GlGraphics, OpenGL};
 use piston::{RenderArgs, UpdateArgs, EventSettings, WindowSettings, Events, RenderEvent, UpdateEvent};
-use vec2::Vec2;
-
-use crate::spring::Spring;
+use renderers::wireframe::render_wireframe;
+use world::World;
 
 mod particle;
 mod vec2;
 mod spring;
 mod cell;
 mod creature;
+mod world;
+mod renderers;
 
 pub struct App {
     gl: GlGraphics,
-    creature: Creature,
-    floor_y: f64,
+    world: World,
     sub_steps: i32,
 }
 
 impl App {
     fn render(&mut self, args: &RenderArgs) {
-        use graphics::*;
-
-        const BG: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
-        self.gl.draw(args.viewport(), |_, gl| {
-            clear(BG, gl);
-        });
-
-        let color: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
-        let square = rectangle::square(0.0, 0.0, 8.0);
-
-        for particle in &self.creature.particles {
-            self.gl.draw(args.viewport(), |c, gl| {
-                let transform = c.transform
-                    .trans(particle.position.x - 4.0, particle.position.y - 4.0);
-
-                rectangle(color, square, transform, gl);
-            });
-        }
-
-        let springs: Vec<&Spring> = self.creature.cells.iter().flat_map(|cell| {
-            &cell.springs
-        }).collect();
-
-        for spring in springs {
-            self.gl.draw(args.viewport(), |c, gl| {
-                let points = [
-                    self.creature.particles[spring.a_id].position.x,
-                    self.creature.particles[spring.a_id].position.y,
-                    self.creature.particles[spring.b_id].position.x,
-                    self.creature.particles[spring.b_id].position.y,
-                ];
-
-                line(color, 1.0, points, c.transform, gl);
-            });
-        }
+        self.world.render(args, &mut self.gl);
     }
 
     fn update(&mut self, args: &UpdateArgs) {
         let dt = args.dt / self.sub_steps as f64;
         for _ in 0..self.sub_steps {
-            for particle in self.creature.particles.iter_mut() {
-                particle.accelerate(Vec2 { x: 0.0, y: 60.0 });
-
-                if particle.position.y > self.floor_y {
-                    particle.position.y = self.floor_y;
-                }
-            }
-
-            self.creature.update(dt);
+            self.world.update(dt);
         }
     }
 }
@@ -83,12 +41,19 @@ fn main() {
         .build()
         .unwrap();
 
-    let creature = Creature::new(4, 40.0);
+    let creature = Creature::new(4, 40.0, 2e-3, 2.0, 1500.0);
+
+    let world = World {
+        creatures: vec![creature],
+        ground_y: 500.0,
+        render_passes: vec![Box::new(|world, args, gl| {
+            render_wireframe(world, args, gl)
+        })],
+    };
 
     let mut app = App {
         gl: GlGraphics::new(opengl),
-        creature,
-        floor_y: 500.0,
+        world,
         sub_steps: 4,
     };
 
