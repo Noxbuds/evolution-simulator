@@ -6,6 +6,7 @@ use crate::{creature::Creature, vec2::Vec2, renderers::RenderPass};
 pub struct World {
     pub creatures: Vec<Creature>,
     pub ground_y: f64,
+    pub ground_friction: f64,
     pub gravity: f64,
     pub render_passes: Vec<RenderPass>,
 }
@@ -23,6 +24,12 @@ impl World {
                 particle.accelerate(Vec2 { x: 0.0, y: self.gravity });
 
                 if particle.position.y > self.ground_y {
+                    let velocity = particle.position.x - particle.old_position.x;
+                    particle.accelerate(Vec2 {
+                        x: velocity * -self.ground_friction * self.gravity,
+                        y: 0.0,
+                    });
+
                     particle.position.y = self.ground_y;
                 }
             }

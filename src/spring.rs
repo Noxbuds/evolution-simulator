@@ -4,6 +4,7 @@ pub struct Spring {
     pub a_id: usize,
     pub b_id: usize,
     pub length: f64,
+    pub start_length: f64,
     pub k: f64,
 }
 

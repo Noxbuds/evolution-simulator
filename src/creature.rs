@@ -20,21 +20,30 @@ pub struct Creature {
 
 impl Creature {
     pub fn update(&mut self, dt: f64) {
-        let mut discharges: Vec<(usize, f64)> = vec![];
-        for (i, cell) in self.cells.iter_mut().enumerate() {
-            cell.apply(&mut self.particles, dt);
+        let mut discharges: Vec<((usize, usize), f64)> = vec![];
+        for cell in self.cells.iter_mut() {
+            cell.update(&mut self.particles, dt);
             cell.charge_model.update(dt);
 
             let discharge = cell.charge_model.get_discharge();
             if discharge > 0.0 {
-                discharges.push((i, discharge));
+                discharges.push((cell.pos, discharge));
             }
         }
 
-        for (i, discharge) in discharges.iter() {
-            let neighbors = [i + 1, i - 1, i + self.size, i - self.size];
-            for n in neighbors {
-                if let Some(cell) = self.cells.get_mut(n) {
+        for (pos, discharge) in discharges.iter() {
+            let (row, col) = *pos;
+            let neighbors = [
+                (row, col + 1),
+                (row, col - 1),
+                (row + 1, col),
+                (row - 1, col),
+            ];
+            for (row, col) in neighbors {
+                if col > self.size - 1 {
+                    continue;
+                }
+                if let Some(cell) = self.cells.get_mut(col + row * self.size) {
                     cell.charge_model.charge(*discharge);
                 }
             }
@@ -80,6 +89,7 @@ impl Creature {
                     ids,
                     options,
                     cell_dna.clone(),
+                    (row, col),
                 ));
             }
         }

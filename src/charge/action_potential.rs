@@ -11,10 +11,11 @@ pub struct ActionPotential {
     active: bool,
     threshold: f64,
     rest_charge: f64,
+    potential_threshold: f64,
 }
 
 impl ActionPotential {
-    pub fn new(threshold: f64, max_acceleration: f64) -> ActionPotential {
+    pub fn new(threshold: f64, max_acceleration: f64, potential_threshold: f64) -> ActionPotential {
         ActionPotential {
             charge: 0.0,
             old_charge: 0.0,
@@ -23,6 +24,7 @@ impl ActionPotential {
             active: false,
             threshold,
             rest_charge: 0.0,
+            potential_threshold,
         }
     }
 }
@@ -57,14 +59,14 @@ impl ChargeModel for ActionPotential {
 
     fn get_discharge(&self) -> f64 {
         if self.charge >= self.threshold {
-            self.charge - self.threshold
+            1.0
         } else {
             0.0
         }
     }
 
-    fn charge(&mut self, _amount: f64) {
-        if !self.active && self.charge >= self.rest_charge {
+    fn charge(&mut self, amount: f64) {
+        if !self.active && self.charge >= self.rest_charge && amount > self.potential_threshold {
             self.acceleration = self.max_acceleration;
             self.active = true;
         }
@@ -79,6 +81,7 @@ impl ChargeModel for ActionPotential {
             threshold: self.threshold,
             active: self.active,
             rest_charge: self.rest_charge,
+            potential_threshold: self.potential_threshold,
         })
     }
 }

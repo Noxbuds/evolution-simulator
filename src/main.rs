@@ -1,4 +1,3 @@
-use charge::action_potential::ActionPotential;
 use creature::{Creature, CellOptions};
 use dna::{CellDna, CreatureDna};
 use glutin_window::GlutinWindow;
@@ -41,8 +40,8 @@ fn generate_dna(length: usize) -> CreatureDna {
 
     for _ in 0..length {
         dna.push(CellDna {
-            conductivity: rand::random(),
-            reactivity: rand::random(),
+            conductivity: rand::random::<f64>() * 1.5,
+            reactivity: rand::random::<f64>() * 0.1,
             toughness: 1000.0 * (rand::random::<f64>() + 1.0),
             active: rand::random(),
             charge_rate: rand::random::<f64>() * 2.0,
@@ -61,12 +60,12 @@ fn main() {
         .build()
         .unwrap();
 
-    let creature_size = 8;
+    let creature_size = 6;
     let dna = generate_dna(creature_size * creature_size);
 
     let cell_options = CellOptions {
         size: creature_size,
-        node_damping: 2e-3,
+        node_damping: 1e-2,
         cell_size: 40.0,
         pulse_threshold: 1.9,
         charge_threshold: 1.0,
@@ -79,7 +78,8 @@ fn main() {
     let world = World {
         creatures: vec![creature],
         ground_y: 500.0,
-        gravity: 100.0,
+        ground_friction: 1000.0,
+        gravity: 200.0,
         render_passes: vec![Box::new(|world, args, gl| {
             render_solid(world, args, gl)
         })],

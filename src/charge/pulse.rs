@@ -25,7 +25,7 @@ impl ChargeModel for Pulse {
 
     fn get_discharge(&self) -> f64 {
         if self.charge > self.threshold {
-            self.charge - self.threshold
+            1.0
         } else {
             0.0
         }
