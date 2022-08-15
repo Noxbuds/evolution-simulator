@@ -32,6 +32,10 @@ impl World {
         self.creatures.push(creature);
     }
 
+    pub fn reset(&mut self) {
+        self.creatures.clear();
+    }
+
     pub fn from_config(config: WorldConfig) -> World {
         World {
             creatures: vec![],

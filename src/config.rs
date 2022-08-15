@@ -14,15 +14,17 @@ pub struct CreatureConfig {
     pub discharge_threshold: f64,
     pub charge_accel: f64,
     pub node_damping: f64,
-    pub node_mass: f64
+    pub node_mass: f64,
 }
 
 #[derive(Clone, Copy)]
 pub struct SimulationConfig {
     pub world_config: WorldConfig,
     pub creature_config: CreatureConfig,
+    pub creature_count: i32, 
     pub timestep: f64,
     pub sub_steps: i32,
+    pub sim_time: f64,
 }
 
 impl SimulationConfig {
@@ -43,7 +45,14 @@ impl SimulationConfig {
             gravity: 200.0,
         };
 
-        SimulationConfig { world_config, creature_config, timestep: 0.01, sub_steps: 4 }
+        SimulationConfig {
+            world_config,
+            creature_config,
+            creature_count: 500,
+            timestep: 0.01,
+            sub_steps: 4,
+            sim_time: 15.0,
+        }
     }
 }
 

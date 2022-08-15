@@ -1,12 +1,15 @@
 use config::SimulationConfig;
 use creature::Creature;
-use dna::{CellDna, CreatureDna};
+use dna::CreatureDna;
+use evolution_controller::{EvolutionController, CreatureResult};
+use fitness::{FitnessFunction, fitness_distance};
 use glutin_window::GlutinWindow;
 use opengl_graphics::{GlGraphics, OpenGL};
-use piston::{RenderArgs, UpdateArgs, EventSettings, WindowSettings, Events, RenderEvent, UpdateEvent, ButtonEvent, Key};
+use piston::{RenderArgs, UpdateArgs, EventSettings, WindowSettings, Events, RenderEvent, UpdateEvent, ButtonEvent, Key, ButtonState, ButtonArgs, Button};
 use renderers::{solid::render_solid, RenderPass};
-use simulator::Simulator;
 use world::World;
+
+extern crate chrono;
 
 mod particle;
 mod vec2;
@@ -19,17 +22,24 @@ mod dna;
 mod charge;
 mod config;
 mod simulator;
+mod fitness;
+mod evolution_controller;
+
+const LOG_OWNER: &str = "[main]";
 
 pub struct App {
     gl: GlGraphics,
     world: World,
     sub_steps: i32,
     render_passes: Vec<RenderPass>,
+    config: SimulationConfig,
+    evolution_controller: EvolutionController,
 }
 
 impl App {
     fn from_config(config: SimulationConfig, gl: GlGraphics) -> App {
         let world = World::from_config(config.world_config);
+        let fitness = Box::new(fitness_distance);
 
         App {
             gl,
@@ -40,6 +50,8 @@ impl App {
                     render_solid(world, args, gl)
                 })
             ],
+            config,
+            evolution_controller: EvolutionController::new(config, fitness, 1),
         }
     }
 
@@ -56,10 +68,63 @@ impl App {
         }
     }
 
-    fn set_config(&mut self, config: SimulationConfig) {
-        self.world.ground_y = config.world_config.ground_y;
-        self.world.ground_friction = config.world_config.ground_friction;
-        self.world.gravity = config.world_config.gravity;
+    fn start_controller(&mut self) {
+        let result = self.evolution_controller.start();
+        if let Err(msg) = result {
+            eprintln!("{}: error while starting controller: {:?}", LOG_OWNER, msg);
+        }
+    }
+
+    fn stop_controller(&mut self) {
+        match self.evolution_controller.stop() {
+            Ok(results) => {
+                self.world.reset();
+                println!("{}: controller stopped, previewing...", LOG_OWNER);
+
+                let first_result = results.first();
+                if let Some((preview, _fitness)) = first_result {
+                    let creature = Creature::new(self.config.creature_config, preview.clone());
+                    if let Some(creature) = creature {
+                        self.world.add_creature(creature);
+                    }
+                }
+            },
+            Err(msg) => {
+                eprintln!("{}: error while stopping controller: {:?}", LOG_OWNER, msg);
+            }
+        }
+    }
+
+    fn handle_input(&mut self, args: &ButtonArgs) {
+        if let Button::Keyboard(key) = args.button {
+            if key == Key::Space && args.state == ButtonState::Press {
+                if self.evolution_controller.is_running() {
+                    self.stop_controller();
+                } else {
+                    self.start_controller();
+                }
+            }
+        }
+        match args.button {
+            piston::Button::Keyboard(key) => {
+                if key == Key::Space && args.state == ButtonState::Press {
+                }
+            },
+            _ => {}
+        }
+    }
+
+    pub fn set_creatures(&mut self, dna: Vec<CreatureDna>) {
+        let creatures = dna.iter().map(|dna| {
+            Creature::new(self.config.creature_config, dna.clone())
+        });
+
+        self.world.reset();
+        for creature in creatures {
+            if let Some(creature) = creature {
+                self.world.add_creature(creature);
+            }
+        }
     }
 }
 
@@ -74,7 +139,9 @@ fn main() {
 
     let config = SimulationConfig::default();
     let mut app = App::from_config(config, GlGraphics::new(opengl));
-    let mut simulator = Simulator::from_config(config);
+
+    let fitness: FitnessFunction = Box::new(fitness_distance);
+    let mut results: Vec<CreatureResult> = vec![];
 
     let mut events = Events::new(EventSettings::new());
     while let Some(e) = events.next(&mut window) {
@@ -87,18 +154,7 @@ fn main() {
         }
 
         if let Some(args) = e.button_args() {
-            match args.button {
-                piston::Button::Keyboard(key) => {
-                    if key == Key::Space {
-                        if simulator.is_running() {
-                            simulator.stop();
-                        } else {
-                            simulator.start();
-                        }
-                    }
-                },
-                _ => {}
-            }
+            app.handle_input(&args);
         }
     }
 }
