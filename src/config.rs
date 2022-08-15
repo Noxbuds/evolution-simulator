@@ -17,14 +17,22 @@ pub struct CreatureConfig {
     pub node_mass: f64,
 }
 
+#[derive(Copy, Clone)]
+pub struct MutationConfig {
+    pub chance: f64,
+    pub strength: f64,
+}
+
 #[derive(Clone, Copy)]
 pub struct SimulationConfig {
     pub world_config: WorldConfig,
     pub creature_config: CreatureConfig,
+    pub mutation_config: MutationConfig,
     pub creature_count: i32, 
     pub timestep: f64,
     pub sub_steps: i32,
     pub sim_time: f64,
+    pub threads: i32,
 }
 
 impl SimulationConfig {
@@ -40,18 +48,24 @@ impl SimulationConfig {
             node_mass: 2.0,
         };
         let world_config = WorldConfig {
-            ground_y: 500.0,
+            ground_y: 300.0,
             ground_friction: 1000.0,
             gravity: 200.0,
+        };
+        let mutation_config = MutationConfig {
+            chance: 0.1,
+            strength: 0.1,
         };
 
         SimulationConfig {
             world_config,
             creature_config,
-            creature_count: 500,
+            mutation_config,
+            creature_count: 1000,
             timestep: 0.01,
             sub_steps: 4,
             sim_time: 15.0,
+            threads: 4,
         }
     }
 }

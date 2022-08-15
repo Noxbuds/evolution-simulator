@@ -1,8 +1,8 @@
 use config::SimulationConfig;
 use creature::Creature;
 use dna::CreatureDna;
-use evolution_controller::{EvolutionController, CreatureResult};
-use fitness::{FitnessFunction, fitness_distance};
+use evolution_controller::EvolutionController;
+use fitness::fitness_distance;
 use glutin_window::GlutinWindow;
 use opengl_graphics::{GlGraphics, OpenGL};
 use piston::{RenderArgs, UpdateArgs, EventSettings, WindowSettings, Events, RenderEvent, UpdateEvent, ButtonEvent, Key, ButtonState, ButtonArgs, Button};
@@ -51,7 +51,7 @@ impl App {
                 })
             ],
             config,
-            evolution_controller: EvolutionController::new(config, fitness, 1),
+            evolution_controller: EvolutionController::new(config, fitness),
         }
     }
 
@@ -77,12 +77,17 @@ impl App {
 
     fn stop_controller(&mut self) {
         match self.evolution_controller.stop() {
-            Ok(results) => {
+            Ok(mut results) => {
                 self.world.reset();
                 println!("{}: controller stopped, previewing...", LOG_OWNER);
 
+                results.sort_by(|(_, a), (_, b)| {
+                    a.total_cmp(b)
+                });
+
                 let first_result = results.first();
-                if let Some((preview, _fitness)) = first_result {
+                if let Some((preview, fitness)) = first_result {
+                    println!("{}: previewing best creature out of {}, fitness: {}", LOG_OWNER, results.len(), fitness);
                     let creature = Creature::new(self.config.creature_config, preview.clone());
                     if let Some(creature) = creature {
                         self.world.add_creature(creature);
@@ -139,9 +144,6 @@ fn main() {
 
     let config = SimulationConfig::default();
     let mut app = App::from_config(config, GlGraphics::new(opengl));
-
-    let fitness: FitnessFunction = Box::new(fitness_distance);
-    let mut results: Vec<CreatureResult> = vec![];
 
     let mut events = Events::new(EventSettings::new());
     while let Some(e) = events.next(&mut window) {

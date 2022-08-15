@@ -1,4 +1,4 @@
-use crate::{creature::Creature, vec2::Vec2, renderers::RenderPass, config::WorldConfig};
+use crate::{creature::Creature, vec2::Vec2, config::WorldConfig};
 
 pub struct World {
     pub creatures: Vec<Creature>,

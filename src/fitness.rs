@@ -1,6 +1,6 @@
 use crate::creature::Creature;
 
-pub type FitnessFunction = Box<dyn Fn(&Vec<Creature>) -> Vec<f64> + Send>;
+pub type FitnessFunction = Box<dyn Fn(&Vec<Creature>) -> Vec<f64> + Send + Sync>;
 
 pub fn fitness_distance(creatures: &Vec<Creature>) -> Vec<f64> {
     creatures.iter().map(|creature| {

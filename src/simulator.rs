@@ -1,4 +1,4 @@
-use std::{sync::mpsc::{Sender, self, Receiver}, thread};
+use std::{sync::{mpsc::{Sender, self, Receiver}, Arc}, thread};
 
 use crate::{config::SimulationConfig, world::World, dna::CreatureDna, creature::Creature, fitness::FitnessFunction, evolution_controller::CreatureResult};
 
@@ -15,11 +15,13 @@ pub struct Simulator {
 }
 
 impl Simulator {
-    pub fn from_config(config: SimulationConfig, fitness_func: FitnessFunction) -> Simulator {
+    pub fn from_config(config: SimulationConfig, fitness_func: Arc<FitnessFunction>) -> Simulator {
         let mut world = World::from_config(config.world_config);
 
         let (sim_tx, thread_rx) = mpsc::channel::<SimulatorMessage>();
         let (thread_tx, sim_rx) = mpsc::channel::<SimulatorMessage>();
+
+        let fitness = fitness_func.clone();
 
         thread::spawn(move || loop {
             if let Ok(message) = thread_rx.recv() {
@@ -39,7 +41,7 @@ impl Simulator {
                             world.update(dt)
                         }
 
-                        let fitnesses = fitness_func(&world.creatures);
+                        let fitnesses = fitness(&world.creatures);
                         let results = all_dna.iter().zip(fitnesses).map(|result| {
                             (result.0.clone(), result.1)
                         }).collect();
