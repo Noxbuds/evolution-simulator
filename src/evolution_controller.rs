@@ -68,7 +68,7 @@ impl EvolutionController {
         let mut dna: Vec<CreatureDna> = Vec::with_capacity(config.creature_count as usize);
         let creature_size = config.creature_config.size;
         for _ in 0..config.creature_count {
-            dna.push(generate_dna(creature_size * creature_size));
+            dna.push(generate_dna(creature_size * creature_size, config.mutation_config));
         }
         dna
     }

@@ -11,12 +11,12 @@ fn get_position(row: usize, col: usize, creature: &Creature) -> [f64; 2] {
 fn get_color(cell: &Cell) -> [f32; 4] {
     let charge = cell.charge_model.get_charge() as f32 * 0.2;
     let toughness = cell.dna.toughness as f32 / 2000.0;
-    let conductivity = cell.dna.conductivity as f32 ;
+    let conductivity = cell.dna.conductivity as f32 * 0.5;
 
     [
+        toughness * conductivity + charge * 2.0,
         toughness + charge,
-        toughness + charge,
-        toughness * conductivity,
+        toughness,
         1.0,
     ]
 }

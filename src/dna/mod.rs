@@ -1,6 +1,6 @@
 use rand::random;
 
-use crate::config::MutationConfig;
+use crate::config::{MutationConfig, MutationRange};
 
 const NUM_FIELDS: f64 = 5.0;
 
@@ -15,30 +15,39 @@ pub struct CellDna {
 
 pub type CreatureDna = Vec<CellDna>;
 
-pub fn generate_dna(length: usize) -> CreatureDna {
+fn generate_field(range: MutationRange) -> f64 {
+    range.min + rand::random::<f64>() * (range.max - range.min)
+}
+
+pub fn generate_dna(length: usize, config: MutationConfig) -> CreatureDna {
     let mut dna: CreatureDna = Vec::new();
 
     for _ in 0..length {
         dna.push(CellDna {
-            conductivity: rand::random::<f64>() * 1.5,
-            reactivity: rand::random::<f64>() * 0.2,
-            toughness: 1000.0 * (rand::random::<f64>() + 1.0),
-            active: rand::random(),
-            charge_rate: rand::random::<f64>() * 2.0,
+            conductivity: generate_field(config.conductivity),
+            reactivity: generate_field(config.reactivity),
+            toughness: generate_field(config.toughness),
+            active: generate_field(config.active),
+            charge_rate: generate_field(config.charge_rate),
         })
     }
 
     dna
 }
 
+fn apply_mutation(value: f64, multiplier: f64, range: MutationRange) -> f64 {
+    let result = value * multiplier;
+    result.clamp(range.min, range.max)
+}
+
 fn mutate_cell(cell: &mut CellDna, field: i32, config: MutationConfig) {
     let multiplier = (random::<f64>() * 2.0 - 1.0) * config.strength;
     match field {
-        1 => cell.reactivity *= multiplier,
-        // 2 => cell.toughness *= multiplier,
-        3 => cell.active *= multiplier,
-        4 => cell.charge_rate *= multiplier,
-        _ => cell.conductivity *= multiplier,
+        1 => cell.reactivity = apply_mutation(cell.reactivity, multiplier, config.reactivity),
+        2 => cell.toughness = apply_mutation(cell.toughness, multiplier, config.toughness),
+        3 => cell.active = apply_mutation(cell.active, multiplier, config.active),
+        4 => cell.charge_rate = apply_mutation(cell.charge_rate, multiplier, config.charge_rate),
+        _ => cell.conductivity = apply_mutation(cell.conductivity, multiplier, config.conductivity),
     }
 }
 

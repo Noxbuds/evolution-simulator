@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 #[derive(Copy, Clone)]
 pub struct WorldConfig {
     pub ground_y: f64,
@@ -19,9 +21,20 @@ pub struct CreatureConfig {
 }
 
 #[derive(Copy, Clone)]
+pub struct MutationRange {
+    pub min: f64,
+    pub max: f64,
+}
+
+#[derive(Copy, Clone)]
 pub struct MutationConfig {
     pub chance: f64,
     pub strength: f64,
+    pub conductivity: MutationRange,
+    pub reactivity: MutationRange,
+    pub toughness: MutationRange,
+    pub active: MutationRange,
+    pub charge_rate: MutationRange,
 }
 
 #[derive(Clone, Copy)]
@@ -57,6 +70,11 @@ impl SimulationConfig {
         let mutation_config = MutationConfig {
             chance: 0.2,
             strength: 0.5,
+            conductivity: mutation_range(0.0, 2.5),
+            reactivity: mutation_range(0.0, 0.4),
+            toughness: mutation_range(1000.0, 2000.0),
+            active: mutation_range(0.0, 1.0),
+            charge_rate: mutation_range(0.0, 2.0),
         };
 
         SimulationConfig {
@@ -70,5 +88,9 @@ impl SimulationConfig {
             threads: 6,
         }
     }
+}
+
+fn mutation_range(min: f64, max: f64) -> MutationRange {
+    MutationRange { min, max }
 }
 
