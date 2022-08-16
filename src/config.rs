@@ -45,7 +45,7 @@ impl SimulationConfig {
             pulse_threshold: 1.9,
             charge_threshold: 1.0,
             discharge_threshold: 1.1,
-            charge_accel: 200.0,
+            charge_accel: 300.0,
             active_threshold: 0.2,
             node_mass: 2.0,
         };
@@ -56,18 +56,18 @@ impl SimulationConfig {
         };
         let mutation_config = MutationConfig {
             chance: 0.2,
-            strength: 0.1,
+            strength: 0.5,
         };
 
         SimulationConfig {
             world_config,
             creature_config,
             mutation_config,
-            creature_count: 500,
+            creature_count: 1000,
             timestep: 0.01,
             sub_steps: 4,
             sim_time: 10.0,
-            threads: 4,
+            threads: 6,
         }
     }
 }
