@@ -53,8 +53,8 @@ fn select_fittest(results: &Vec<(CreatureDna, f64)>) -> Vec<CreatureDna> {
 
     let mut rng = thread_rng();
     for _ in 0..results.len() / 2 {
-        let id = rng.gen::<f64>() * sorted.len() as f64;
-        sorted.remove(id as usize);
+        let id = (rng.gen::<f64>() - 0.5) * sorted.len() as f64;
+        sorted.remove(id.abs() as usize);
     }
 
     sorted.into_iter().map(|(dna, _)| { dna }).collect()

@@ -85,7 +85,7 @@ impl App {
                     a.total_cmp(b)
                 });
 
-                let first_result = results.first();
+                let first_result = results.last();
                 if let Some((preview, fitness)) = first_result {
                     println!("{}: previewing best creature out of {}, fitness: {}", LOG_OWNER, results.len(), fitness);
                     let creature = Creature::new(self.config.creature_config, preview.clone());
@@ -136,7 +136,7 @@ impl App {
 fn main() {
     let opengl = OpenGL::V2_1;
 
-    let mut window: GlutinWindow = WindowSettings::new("evolution simulator", [200, 200])
+    let mut window: GlutinWindow = WindowSettings::new("evolution simulator", [1920, 1080])
         .graphics_api(opengl)
         .exit_on_esc(true)
         .build()

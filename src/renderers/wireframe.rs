@@ -24,9 +24,18 @@ pub fn render_wireframe(world: &World, args: &RenderArgs, gl: &mut GlGraphics) {
             });
         }
 
-        let springs: Vec<&Spring> = creature.cells.iter().flat_map(|cell| {
-            &cell.springs
-        }).collect();
+        let springs: Vec<&Spring> = creature.cells.iter()
+            .filter_map(|cell| {
+                if let Some(cell) = cell {
+                    Some(cell)
+                } else {
+                    None
+                }
+            })
+            .flat_map(|cell| {
+                &cell.springs
+            })
+            .collect();
 
         for spring in springs {
             gl.draw(args.viewport(), |c, gl| {

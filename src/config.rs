@@ -13,6 +13,7 @@ pub struct CreatureConfig {
     pub charge_threshold: f64,
     pub discharge_threshold: f64,
     pub charge_accel: f64,
+    pub active_threshold: f64,
     pub node_damping: f64,
     pub node_mass: f64,
 }
@@ -39,21 +40,22 @@ impl SimulationConfig {
     pub fn default() -> SimulationConfig {
         let creature_config = CreatureConfig {
             size: 6,
-            node_damping: 1e-2,
+            node_damping: 4e-2,
             cell_size: 40.0,
             pulse_threshold: 1.9,
             charge_threshold: 1.0,
             discharge_threshold: 1.1,
             charge_accel: 200.0,
+            active_threshold: 0.2,
             node_mass: 2.0,
         };
         let world_config = WorldConfig {
-            ground_y: 300.0,
-            ground_friction: 1000.0,
-            gravity: 200.0,
+            ground_y: creature_config.cell_size * creature_config.size as f64 + 10.0,
+            ground_friction: 200.0,
+            gravity: 800.0,
         };
         let mutation_config = MutationConfig {
-            chance: 0.1,
+            chance: 0.2,
             strength: 0.1,
         };
 
@@ -64,7 +66,7 @@ impl SimulationConfig {
             creature_count: 1000,
             timestep: 0.01,
             sub_steps: 4,
-            sim_time: 15.0,
+            sim_time: 10.0,
             threads: 4,
         }
     }

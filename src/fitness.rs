@@ -4,15 +4,12 @@ pub type FitnessFunction = Box<dyn Fn(&Vec<Creature>) -> Vec<f64> + Send + Sync>
 
 pub fn fitness_distance(creatures: &Vec<Creature>) -> Vec<f64> {
     creatures.iter().map(|creature| {
-        let mut furthest: f64 = 0.0;
+        let mut total: f64 = 0.0;
         for particle in &creature.particles {
-            let distance = particle.position.x;
-            if distance > furthest {
-                furthest = distance;
-            }
+            total += particle.position.x;
         }
 
-        furthest
+        total / creature.particles.len() as f64
     }).collect()
 }
 

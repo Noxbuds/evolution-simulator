@@ -18,7 +18,11 @@ impl Cell {
         }
     }
 
-    pub fn new(cell_ids: [usize; 4], options: CreatureConfig, dna: CellDna, pos: (usize, usize)) -> Cell {
+    pub fn new(cell_ids: [usize; 4], options: CreatureConfig, dna: CellDna, pos: (usize, usize)) -> Option<Cell> {
+        if dna.active < options.active_threshold {
+            return None;
+        }
+
         let diagonal = (options.cell_size * options.cell_size * 2.0).sqrt();
         let springs = [
             Spring {
@@ -79,12 +83,12 @@ impl Cell {
             ))
         };
 
-        Cell {
+        Some(Cell {
             dna,
             springs,
             charge_model,
             pos,
-        }
+        })
     }
 }
 

@@ -21,7 +21,7 @@ pub fn generate_dna(length: usize) -> CreatureDna {
     for _ in 0..length {
         dna.push(CellDna {
             conductivity: rand::random::<f64>() * 1.5,
-            reactivity: rand::random::<f64>() * 0.1,
+            reactivity: rand::random::<f64>() * 0.2,
             toughness: 1000.0 * (rand::random::<f64>() + 1.0),
             active: rand::random(),
             charge_rate: rand::random::<f64>() * 2.0,
@@ -35,7 +35,7 @@ fn mutate_cell(cell: &mut CellDna, field: i32, config: MutationConfig) {
     let multiplier = (random::<f64>() * 2.0 - 1.0) * config.strength;
     match field {
         1 => cell.reactivity *= multiplier,
-        2 => cell.toughness *= multiplier,
+        // 2 => cell.toughness *= multiplier,
         3 => cell.active *= multiplier,
         4 => cell.charge_rate *= multiplier,
         _ => cell.conductivity *= multiplier,

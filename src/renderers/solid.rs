@@ -19,20 +19,22 @@ pub fn render_solid(world: &World, args: &RenderArgs, gl: &mut GlGraphics) {
     for creature in world.creatures.iter() {
         for row in 0..creature.size {
             for col in 0..creature.size {
-                let charge = creature.cells[Creature::get_cell_id(row, col, creature.size)].charge_model.get_charge();
-                let brightness: f32 = charge as f32 * 0.5 + 0.5;
-                let color = [brightness, brightness, brightness, 1.0];
+                if let Some(cell) = &creature.cells[Creature::get_cell_id(row, col, creature.size)] {
+                    let charge = cell.charge_model.get_charge();
+                    let brightness: f32 = charge as f32 * 0.5 + 0.5;
+                    let color = [brightness, brightness, brightness, 1.0];
 
-                let points = [
-                    get_position(row, col, creature),
-                    get_position(row, col + 1, creature),
-                    get_position(row + 1, col + 1, creature),
-                    get_position(row + 1, col, creature),
-                ];
+                    let points = [
+                        get_position(row, col, creature),
+                        get_position(row, col + 1, creature),
+                        get_position(row + 1, col + 1, creature),
+                        get_position(row + 1, col, creature),
+                    ];
 
-                gl.draw(args.viewport(), |c, gl| {
-                    polygon(color, &points, c.transform, gl);
-                });
+                    gl.draw(args.viewport(), |c, gl| {
+                        polygon(color, &points, c.transform, gl);
+                    });
+                }
             }
         }
     }

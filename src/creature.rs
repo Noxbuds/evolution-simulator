@@ -2,7 +2,7 @@ use crate::{cell::Cell, particle::Particle, vec2::Vec2, dna::CreatureDna, config
 
 pub struct Creature {
     pub particles: Vec<Particle>,
-    pub cells: Vec<Cell>,
+    pub cells: Vec<Option<Cell>>,
     pub size: usize,
 }
 
@@ -10,12 +10,14 @@ impl Creature {
     pub fn update(&mut self, dt: f64) {
         let mut discharges: Vec<((usize, usize), f64)> = vec![];
         for cell in self.cells.iter_mut() {
-            cell.update(&mut self.particles, dt);
-            cell.charge_model.update(dt);
+            if let Some(cell) = cell {
+                cell.update(&mut self.particles, dt);
+                cell.charge_model.update(dt);
 
-            let discharge = cell.charge_model.get_discharge();
-            if discharge > 0.0 {
-                discharges.push((cell.pos, discharge));
+                let discharge = cell.charge_model.get_discharge();
+                if discharge > 0.0 {
+                    discharges.push((cell.pos, discharge));
+                }
             }
         }
 
@@ -32,7 +34,9 @@ impl Creature {
                     continue;
                 }
                 if let Some(cell) = self.cells.get_mut(col + row * self.size) {
-                    cell.charge_model.charge(*discharge);
+                    if let Some(cell) = cell {
+                        cell.charge_model.charge(*discharge);
+                    }
                 }
             }
         }
@@ -53,8 +57,8 @@ impl Creature {
                 let (x, y) = (col as f64 * options.cell_size, row as f64 * options.cell_size);
 
                 particles.push(Particle {
-                    position: Vec2 { x, y },
-                    old_position: Vec2 { x, y},
+                    position: Vec2 { x: x + 10.0, y },
+                    old_position: Vec2 { x: x + 10.0, y },
                     acceleration: Vec2 { x: 0.0, y: 0.0 },
                     mass: options.node_mass,
                     damping: options.node_damping,
