@@ -125,6 +125,11 @@ impl EvolutionController {
                 let end = UTC::now();
                 let time = end - start;
                 println!("{}: generation completed in {}ms, best {}", LOG_OWNER, time.num_milliseconds(), best_fitness);
+
+                let send_result = thread_sender.send(ControllerMessage::Results(results.clone()));
+                if let Err(msg) = send_result {
+                    eprintln!("{}: error while sending results: {:?}", LOG_OWNER, msg);
+                }
             }
         });
 
@@ -141,6 +146,18 @@ impl EvolutionController {
             self.running = true;
         }
         result
+    }
+
+    pub fn try_get_results(&self) -> Vec<CreatureResult> {
+        self.message_receiver.try_recv().into_iter()
+            .filter_map(|message| {
+                match message {
+                    ControllerMessage::Results(results) => Some(results),
+                    _ => None,
+                }
+            })
+            .flatten()
+            .collect()
     }
     
     pub fn stop(&mut self) -> Result<Vec<CreatureResult>, SendError<ControllerMessage>> {

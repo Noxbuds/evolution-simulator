@@ -7,6 +7,8 @@ use glutin_window::GlutinWindow;
 use opengl_graphics::{GlGraphics, OpenGL};
 use piston::{RenderArgs, UpdateArgs, EventSettings, WindowSettings, Events, RenderEvent, UpdateEvent, ButtonEvent, Key, ButtonState, ButtonArgs, Button};
 use renderers::{solid::render_solid, RenderPass};
+use statistics::{StatisticsPanel, fitness_chart::FitnessChart};
+use vec2::Vec2;
 use world::World;
 
 extern crate chrono;
@@ -24,6 +26,7 @@ mod config;
 mod simulator;
 mod fitness;
 mod evolution_controller;
+mod statistics;
 
 const LOG_OWNER: &str = "[main]";
 
@@ -34,12 +37,14 @@ pub struct App {
     render_passes: Vec<RenderPass>,
     config: SimulationConfig,
     evolution_controller: EvolutionController,
+    statistics_panels: Vec<Box<dyn StatisticsPanel>>,
 }
 
 impl App {
     fn from_config(config: SimulationConfig, gl: GlGraphics) -> App {
         let world = World::from_config(config.world_config);
         let fitness = Box::new(fitness_distance);
+        let percentiles: Vec<f64> = vec![25.0, 50.0, 75.0, 100.0];
 
         App {
             gl,
@@ -52,6 +57,9 @@ impl App {
             ],
             config,
             evolution_controller: EvolutionController::new(config, fitness),
+            statistics_panels: vec![
+                Box::new(FitnessChart::new(percentiles, 20.0))
+            ],
         }
     }
 
@@ -59,12 +67,38 @@ impl App {
         for pass in &self.render_passes {
             pass(&self.world, args, &mut self.gl);
         }
+
+        let panel_count = self.statistics_panels.len() as f64;
+        let panel_width = args.window_size[0] / panel_count;
+        let panel_height = args.window_size[1] * 0.5;
+        let panel_y = args.window_size[1] * 0.5;
+
+        for (i, panel) in self.statistics_panels.iter().enumerate() {
+            let position = Vec2 {
+                x: i as f64 * panel_width,
+                y: panel_y,
+            };
+
+            let size = Vec2 {
+                x: panel_width,
+                y: panel_height,
+            };
+
+            panel.render(args.viewport(), &mut self.gl, position, size);
+        }
     }
 
     fn update(&mut self, args: &UpdateArgs) {
         let dt = args.dt / self.sub_steps as f64;
         for _ in 0..self.sub_steps {
             self.world.update(dt);
+        }
+
+        let results = self.evolution_controller.try_get_results();
+        if results.len() > 0 {
+            for panel in self.statistics_panels.iter_mut() {
+                panel.gather_statistics(&results);
+            }
         }
     }
 
@@ -77,13 +111,9 @@ impl App {
 
     fn stop_controller(&mut self) {
         match self.evolution_controller.stop() {
-            Ok(mut results) => {
+            Ok(results) => {
                 self.world.reset();
                 println!("{}: controller stopped, previewing...", LOG_OWNER);
-
-                results.sort_by(|(_, a), (_, b)| {
-                    a.total_cmp(b)
-                });
 
                 let first_result = results.last();
                 if let Some((preview, fitness)) = first_result {
