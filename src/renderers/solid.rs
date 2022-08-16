@@ -1,11 +1,24 @@
 use opengl_graphics::GlGraphics;
 use piston::RenderArgs;
 
-use crate::{world::World, creature::Creature};
+use crate::{world::World, creature::Creature, charge::ChargeModel, cell::Cell};
 
 fn get_position(row: usize, col: usize, creature: &Creature) -> [f64; 2] {
     let position = creature.particles[Creature::get_cell_id(row, col, creature.size + 1)].position;
     [position.x, position.y]
+}
+
+fn get_color(cell: &Cell) -> [f32; 4] {
+    let charge = cell.charge_model.get_charge() as f32 * 0.2;
+    let toughness = cell.dna.toughness as f32 / 2000.0;
+    let conductivity = cell.dna.conductivity as f32 ;
+
+    [
+        toughness + charge,
+        toughness + charge,
+        toughness * conductivity,
+        1.0,
+    ]
 }
 
 pub fn render_solid(world: &World, args: &RenderArgs, gl: &mut GlGraphics) {
@@ -20,9 +33,7 @@ pub fn render_solid(world: &World, args: &RenderArgs, gl: &mut GlGraphics) {
         for row in 0..creature.size {
             for col in 0..creature.size {
                 if let Some(cell) = &creature.cells[Creature::get_cell_id(row, col, creature.size)] {
-                    let charge = cell.charge_model.get_charge();
-                    let brightness: f32 = charge as f32 * 0.5 + 0.5;
-                    let color = [brightness, brightness, brightness, 1.0];
+                    let color = get_color(&cell);
 
                     let points = [
                         get_position(row, col, creature),

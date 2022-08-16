@@ -1,4 +1,4 @@
-use std::{sync::{mpsc::{self, Sender, Receiver, SendError}, Arc}, thread, vec};
+use std::{sync::{mpsc::{self, Sender, Receiver, SendError}, Arc}, thread};
 
 use chrono::UTC;
 use rand::{Rng, thread_rng};
@@ -47,9 +47,6 @@ fn simulate_generation(dna: &Vec<CreatureDna>, simulators: &Vec<Simulator>) -> V
 
 fn select_fittest(results: &Vec<(CreatureDna, f64)>) -> Vec<CreatureDna> {
     let mut sorted = results.clone();
-    sorted.sort_by(|(_, a), (_, b)| {
-        a.total_cmp(b)
-    });
 
     let mut rng = thread_rng();
     for _ in 0..results.len() / 2 {
@@ -114,12 +111,20 @@ impl EvolutionController {
                 let start = UTC::now();
 
                 results = simulate_generation(&dna, &simulators);
+                results.sort_by(|(_, a), (_, b)| {
+                    a.total_cmp(b)
+                });
                 let fittest = select_fittest(&results);
                 dna = reproduce(config.mutation_config, &fittest);
 
+                let best_fitness = match results.last() {
+                    Some((_, fitness)) => fitness.clone(),
+                    None => 0.0,
+                };
+
                 let end = UTC::now();
                 let time = end - start;
-                println!("{}: generation completed in {}ms", LOG_OWNER, time.num_milliseconds());
+                println!("{}: generation completed in {}ms, best {}", LOG_OWNER, time.num_milliseconds(), best_fitness);
             }
         });
 

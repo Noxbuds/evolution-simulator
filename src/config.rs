@@ -63,7 +63,7 @@ impl SimulationConfig {
             world_config,
             creature_config,
             mutation_config,
-            creature_count: 1000,
+            creature_count: 500,
             timestep: 0.01,
             sub_steps: 4,
             sim_time: 10.0,
