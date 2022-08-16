@@ -42,7 +42,7 @@ impl StatisticsPanel for FitnessChart {
         let line_color: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
         let stat_width = size.x / (self.statistics.len() - 1) as f64;
-        let stat_height = size.y * 0.5;
+        let stat_height = size.y;
         let y_off = size.y + position.y;
 
         if self.statistics.len() < 1 {
